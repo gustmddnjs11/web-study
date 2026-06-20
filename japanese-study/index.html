@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>일본어 공부 퀴즈</title>
+    <link rel="stylesheet" href="main.css" />
+</head>
+<body>
+    <div class="app">
+        <header class="header">
+            <h1>🌸 일본어 공부 퀴즈</h1>
+            <p class="subtitle">히라가나 · 단어 · 인사말을 풀면서 익혀보세요</p>
+        </header>
+
+        <!-- 시작 화면 -->
+        <section id="startScreen" class="card">
+            <h2>무엇을 공부할까요?</h2>
+
+            <div class="field">
+                <label>주제 선택</label>
+                <div class="options" id="categoryOptions">
+                    <button class="chip selected" data-category="hiragana">히라가나</button>
+                    <button class="chip" data-category="word">단어</button>
+                    <button class="chip" data-category="greeting">인사말</button>
+                    <button class="chip" data-category="all">전체</button>
+                </div>
+            </div>
+
+            <div class="field">
+                <label>문제 방식</label>
+                <div class="options" id="modeOptions">
+                    <button class="chip selected" data-mode="choice">객관식 (선택하기)</button>
+                    <button class="chip" data-mode="input">주관식 (직접 답하기)</button>
+                </div>
+            </div>
+
+            <div class="field">
+                <label>문제 수</label>
+                <div class="options" id="countOptions">
+                    <button class="chip selected" data-count="5">5문제</button>
+                    <button class="chip" data-count="10">10문제</button>
+                    <button class="chip" data-count="20">20문제</button>
+                </div>
+            </div>
+
+            <button id="startBtn" class="primary-btn">공부 시작 🚀</button>
+        </section>
+
+        <!-- 퀴즈 화면 -->
+        <section id="quizScreen" class="card hidden">
+            <div class="progress-row">
+                <span id="progressText">1 / 5</span>
+                <span id="scoreText">점수: 0</span>
+            </div>
+            <div class="progress-bar"><div id="progressFill"></div></div>
+
+            <p class="question-label" id="questionLabel">다음 글자의 발음은?</p>
+            <div class="question" id="questionText">あ</div>
+
+            <div id="choiceArea" class="choice-area"></div>
+
+            <div id="inputArea" class="input-area hidden">
+                <input type="text" id="answerInput" placeholder="답을 입력하세요" autocomplete="off" />
+                <button id="submitBtn" class="primary-btn">제출</button>
+            </div>
+
+            <p id="feedback" class="feedback"></p>
+            <button id="nextBtn" class="primary-btn hidden">다음 ➡️</button>
+        </section>
+
+        <!-- 결과 화면 -->
+        <section id="resultScreen" class="card hidden">
+            <h2>🎉 학습 완료!</h2>
+            <p class="result-score" id="resultScore">0 / 0</p>
+            <p class="result-msg" id="resultMsg"></p>
+            <button id="restartBtn" class="primary-btn">다시 하기 🔁</button>
+        </section>
+    </div>
+
+    <script src="main.js"></script>
+</body>
+</html>
