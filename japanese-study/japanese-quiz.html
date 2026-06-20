@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>일본어 공부 퀴즈</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+            background: linear-gradient(135deg, #ffe0ec 0%, #e0f0ff 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 24px;
+            color: #333;
+        }
+        .app { width: 100%; max-width: 480px; }
+        .header { text-align: center; margin-bottom: 20px; }
+        .header h1 { font-size: 26px; color: #d6336c; }
+        .subtitle { margin-top: 6px; font-size: 14px; color: #666; }
+        .card {
+            background: #fff;
+            border-radius: 18px;
+            padding: 24px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        }
+        .hidden { display: none !important; }
+        .field { margin-bottom: 20px; }
+        .field > label { display: block; font-weight: 600; margin-bottom: 8px; font-size: 15px; }
+        .options { display: flex; flex-wrap: wrap; gap: 8px; }
+        .chip {
+            border: 2px solid #ffd0e0;
+            background: #fff;
+            color: #555;
+            padding: 8px 14px;
+            border-radius: 999px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .chip:hover { border-color: #f783ac; }
+        .chip.selected {
+            background: #f783ac;
+            border-color: #f783ac;
+            color: #fff;
+            font-weight: 600;
+        }
+        .primary-btn {
+            width: 100%;
+            background: #d6336c;
+            color: #fff;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: background 0.15s;
+        }
+        .primary-btn:hover { background: #c2255c; }
+        .progress-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #ffe0ec;
+            border-radius: 999px;
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+        #progressFill { height: 100%; width: 0%; background: #f783ac; transition: width 0.3s; }
+        .question-label { font-size: 14px; color: #888; text-align: center; margin-bottom: 12px; }
+        .question {
+            font-size: 64px;
+            text-align: center;
+            margin-bottom: 24px;
+            color: #333;
+            word-break: break-all;
+        }
+        .choice-area { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .choice-btn {
+            border: 2px solid #ddd;
+            background: #fafafa;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .choice-btn:hover:not(:disabled) { border-color: #f783ac; }
+        .choice-btn.correct {
+            background: #d3f9d8;
+            border-color: #51cf66;
+            color: #2b8a3e;
+            font-weight: 600;
+        }
+        .choice-btn.wrong { background: #ffe3e3; border-color: #ff6b6b; color: #c92a2a; }
+        .choice-btn:disabled { cursor: default; }
+        .input-area { display: flex; flex-direction: column; gap: 10px; }
+        #answerInput {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #ddd;
+            border-radius: 12px;
+            font-size: 16px;
+            outline: none;
+        }
+        #answerInput:focus { border-color: #f783ac; }
+        .feedback {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 16px;
+            font-weight: 600;
+            min-height: 24px;
+        }
+        .feedback.correct { color: #2b8a3e; }
+        .feedback.wrong { color: #c92a2a; }
+        .result-score {
+            text-align: center;
+            font-size: 40px;
+            font-weight: 700;
+            color: #d6336c;
+            margin: 16px 0;
+        }
+        .result-msg { text-align: center; color: #666; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <header class="header">
+            <h1>🌸 일본어 공부 퀴즈</h1>
+            <p class="subtitle">히라가나 · 단어 · 인사말을 풀면서 익혀보세요</p>
+        </header>
+
+        <!-- 시작 화면 -->
+        <section id="startScreen" class="card">
+            <h2>무엇을 공부할까요?</h2>
+
+            <div class="field">
+                <label>주제 선택</label>
+                <div class="options" id="categoryOptions">
+                    <button class="chip selected" data-category="hiragana">히라가나</button>
+                    <button class="chip" data-category="word">단어</button>
+                    <button class="chip" data-category="greeting">인사말</button>
+                    <button class="chip" data-category="all">전체</button>
+                </div>
+            </div>
+
+            <div class="field">
+                <label>문제 방식</label>
+                <div class="options" id="modeOptions">
+                    <button class="chip selected" data-mode="choice">객관식 (선택하기)</button>
+                    <button class="chip" data-mode="input">주관식 (직접 답하기)</button>
+                </div>
+            </div>
+
+            <div class="field">
+                <label>문제 수</label>
+                <div class="options" id="countOptions">
+                    <button class="chip selected" data-count="5">5문제</button>
+                    <button class="chip" data-count="10">10문제</button>
+                    <button class="chip" data-count="20">20문제</button>
+                </div>
+            </div>
+
+            <button id="startBtn" class="primary-btn">공부 시작 🚀</button>
+        </section>
+
+        <!-- 퀴즈 화면 -->
+        <section id="quizScreen" class="card hidden">
+            <div class="progress-row">
+                <span id="progressText">1 / 5</span>
+                <span id="scoreText">점수: 0</span>
+            </div>
+            <div class="progress-bar"><div id="progressFill"></div></div>
+
+            <p class="question-label" id="questionLabel">다음 글자의 발음은?</p>
+            <div class="question" id="questionText">あ</div>
+
+            <div id="choiceArea" class="choice-area"></div>
+
+            <div id="inputArea" class="input-area hidden">
+                <input type="text" id="answerInput" placeholder="답을 입력하세요" autocomplete="off" />
+                <button id="submitBtn" class="primary-btn">제출</button>
+            </div>
+
+            <p id="feedback" class="feedback"></p>
+            <button id="nextBtn" class="primary-btn hidden">다음 ➡️</button>
+        </section>
+
+        <!-- 결과 화면 -->
+        <section id="resultScreen" class="card hidden">
+            <h2>🎉 학습 완료!</h2>
+            <p class="result-score" id="resultScore">0 / 0</p>
+            <p class="result-msg" id="resultMsg"></p>
+            <button id="restartBtn" class="primary-btn">다시 하기 🔁</button>
+        </section>
+    </div>
+
+    <script>
+        // ===== 문제 데이터 =====
+        const QUESTIONS = {
+            hiragana: [
+                { q: "あ", a: "a" }, { q: "い", a: "i" }, { q: "う", a: "u" },
+                { q: "え", a: "e" }, { q: "お", a: "o" }, { q: "か", a: "ka" },
+                { q: "き", a: "ki" }, { q: "く", a: "ku" }, { q: "け", a: "ke" },
+                { q: "こ", a: "ko" }, { q: "さ", a: "sa" }, { q: "し", a: "shi" },
+                { q: "す", a: "su" }, { q: "せ", a: "se" }, { q: "そ", a: "so" },
+                { q: "た", a: "ta" }, { q: "ち", a: "chi" }, { q: "つ", a: "tsu" },
+                { q: "な", a: "na" }, { q: "に", a: "ni" }, { q: "は", a: "ha" },
+                { q: "ひ", a: "hi" }, { q: "ま", a: "ma" }, { q: "や", a: "ya" },
+                { q: "ら", a: "ra" }, { q: "わ", a: "wa" }, { q: "ん", a: "n" },
+            ],
+            word: [
+                { q: "水（みず）", a: "물" }, { q: "猫（ねこ）", a: "고양이" },
+                { q: "犬（いぬ）", a: "개" }, { q: "本（ほん）", a: "책" },
+                { q: "車（くるま）", a: "자동차" }, { q: "学校（がっこう）", a: "학교" },
+                { q: "先生（せんせい）", a: "선생님" }, { q: "友達（ともだち）", a: "친구" },
+                { q: "食べ物（たべもの）", a: "음식" }, { q: "時間（じかん）", a: "시간" },
+                { q: "家（いえ）", a: "집" }, { q: "空（そら）", a: "하늘" },
+                { q: "花（はな）", a: "꽃" }, { q: "雨（あめ）", a: "비" },
+                { q: "山（やま）", a: "산" }, { q: "海（うみ）", a: "바다" },
+            ],
+            greeting: [
+                { q: "おはよう", a: "안녕(아침 인사)" },
+                { q: "こんにちは", a: "안녕하세요(낮 인사)" },
+                { q: "こんばんは", a: "안녕하세요(밤 인사)" },
+                { q: "ありがとう", a: "고마워" },
+                { q: "すみません", a: "죄송합니다" },
+                { q: "さようなら", a: "안녕히 가세요" },
+                { q: "はじめまして", a: "처음 뵙겠습니다" },
+                { q: "いただきます", a: "잘 먹겠습니다" },
+                { q: "おやすみ", a: "잘 자" },
+                { q: "おねがいします", a: "부탁합니다" },
+            ],
+        };
+
+        const LABELS = {
+            hiragana: "다음 글자의 발음(로마자)은?",
+            word: "다음 단어의 뜻은?",
+            greeting: "다음 인사말의 뜻은?",
+        };
+
+        // ===== 상태 =====
+        let settings = { category: "hiragana", mode: "choice", count: 5 };
+        let quiz = [];
+        let current = 0;
+        let score = 0;
+
+        // ===== 유틸 =====
+        function shuffle(arr) {
+            return [...arr].sort(() => Math.random() - 0.5);
+        }
+
+        function getPool(category) {
+            if (category === "all") {
+                return Object.keys(QUESTIONS).flatMap((cat) =>
+                    QUESTIONS[cat].map((item) => ({ ...item, category: cat }))
+                );
+            }
+            return QUESTIONS[category].map((item) => ({ ...item, category }));
+        }
+
+        // ===== 칩(선택 버튼) 동작 =====
+        function setupChips(containerId, key, parse) {
+            const container = document.getElementById(containerId);
+            container.addEventListener("click", (e) => {
+                const btn = e.target.closest(".chip");
+                if (!btn) return;
+                container.querySelectorAll(".chip").forEach((c) => c.classList.remove("selected"));
+                btn.classList.add("selected");
+                settings[key] = parse(btn.dataset[key]);
+            });
+        }
+
+        setupChips("categoryOptions", "category", (v) => v);
+        setupChips("modeOptions", "mode", (v) => v);
+        setupChips("countOptions", "count", (v) => parseInt(v, 10));
+
+        // ===== 화면 전환 =====
+        function show(id) {
+            ["startScreen", "quizScreen", "resultScreen"].forEach((s) =>
+                document.getElementById(s).classList.add("hidden")
+            );
+            document.getElementById(id).classList.remove("hidden");
+        }
+
+        // ===== 퀴즈 시작 =====
+        document.getElementById("startBtn").addEventListener("click", () => {
+            const pool = shuffle(getPool(settings.category));
+            quiz = pool.slice(0, Math.min(settings.count, pool.length));
+            current = 0;
+            score = 0;
+            show("quizScreen");
+            renderQuestion();
+        });
+
+        // ===== 문제 렌더링 =====
+        function renderQuestion() {
+            const item = quiz[current];
+            const cat = item.category;
+
+            document.getElementById("progressText").textContent = `${current + 1} / ${quiz.length}`;
+            document.getElementById("scoreText").textContent = `점수: ${score}`;
+            document.getElementById("progressFill").style.width = `${(current / quiz.length) * 100}%`;
+            document.getElementById("questionLabel").textContent = LABELS[cat];
+            document.getElementById("questionText").textContent = item.q;
+
+            document.getElementById("feedback").textContent = "";
+            document.getElementById("feedback").className = "feedback";
+            document.getElementById("nextBtn").classList.add("hidden");
+
+            const choiceArea = document.getElementById("choiceArea");
+            const inputArea = document.getElementById("inputArea");
+
+            if (settings.mode === "choice") {
+                inputArea.classList.add("hidden");
+                choiceArea.classList.remove("hidden");
+                renderChoices(item);
+            } else {
+                choiceArea.classList.add("hidden");
+                inputArea.classList.remove("hidden");
+                const input = document.getElementById("answerInput");
+                input.value = "";
+                input.disabled = false;
+                input.focus();
+                document.getElementById("submitBtn").disabled = false;
+            }
+        }
+
+        // ===== 객관식 보기 =====
+        function renderChoices(item) {
+            const pool = getPool(item.category);
+            const wrongs = shuffle(pool.filter((p) => p.a !== item.a)).slice(0, 3);
+            const options = shuffle([item, ...wrongs]);
+
+            const area = document.getElementById("choiceArea");
+            area.innerHTML = "";
+            options.forEach((opt) => {
+                const btn = document.createElement("button");
+                btn.className = "choice-btn";
+                btn.textContent = opt.a;
+                btn.addEventListener("click", () => checkChoice(btn, opt.a, item.a));
+                area.appendChild(btn);
+            });
+        }
+
+        function checkChoice(btn, picked, answer) {
+            const buttons = document.querySelectorAll(".choice-btn");
+            buttons.forEach((b) => {
+                b.disabled = true;
+                if (b.textContent === answer) b.classList.add("correct");
+            });
+
+            const feedback = document.getElementById("feedback");
+            if (picked === answer) {
+                score++;
+                feedback.textContent = "정답이에요! 🎉";
+                feedback.className = "feedback correct";
+            } else {
+                btn.classList.add("wrong");
+                feedback.textContent = `아쉬워요! 정답은 "${answer}"`;
+                feedback.className = "feedback wrong";
+            }
+            document.getElementById("scoreText").textContent = `점수: ${score}`;
+            document.getElementById("nextBtn").classList.remove("hidden");
+        }
+
+        // ===== 주관식 제출 =====
+        function submitInput() {
+            const input = document.getElementById("answerInput");
+            if (input.disabled) return;
+            const item = quiz[current];
+            const userAns = input.value.trim().toLowerCase();
+            const answer = item.a.toLowerCase();
+
+            input.disabled = true;
+            document.getElementById("submitBtn").disabled = true;
+
+            const feedback = document.getElementById("feedback");
+            const isCorrect = userAns === answer || (answer.includes(userAns) && userAns.length > 0);
+
+            if (isCorrect) {
+                score++;
+                feedback.textContent = "정답이에요! 🎉";
+                feedback.className = "feedback correct";
+            } else {
+                feedback.textContent = `아쉬워요! 정답은 "${item.a}"`;
+                feedback.className = "feedback wrong";
+            }
+            document.getElementById("scoreText").textContent = `점수: ${score}`;
+            document.getElementById("nextBtn").classList.remove("hidden");
+        }
+
+        document.getElementById("submitBtn").addEventListener("click", submitInput);
+        document.getElementById("answerInput").addEventListener("keydown", (e) => {
+            if (e.key === "Enter") submitInput();
+        });
+
+        // ===== 다음 문제 =====
+        document.getElementById("nextBtn").addEventListener("click", () => {
+            current++;
+            if (current < quiz.length) {
+                renderQuestion();
+            } else {
+                showResult();
+            }
+        });
+
+        // ===== 결과 =====
+        function showResult() {
+            show("resultScreen");
+            document.getElementById("resultScore").textContent = `${score} / ${quiz.length}`;
+            const ratio = score / quiz.length;
+            let msg;
+            if (ratio === 1) msg = "완벽해요! 일본어 마스터 🏆";
+            else if (ratio >= 0.7) msg = "훌륭해요! 조금만 더 하면 완벽! 👍";
+            else if (ratio >= 0.4) msg = "좋아요! 반복하면 금방 늘어요 💪";
+            else msg = "괜찮아요! 처음엔 다 그래요. 다시 도전! 🌱";
+            document.getElementById("resultMsg").textContent = msg;
+        }
+
+        document.getElementById("restartBtn").addEventListener("click", () => show("startScreen"));
+    </script>
+</body>
+</html>
