@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>일본어 회화 연습 (듣고 말하기)</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+            background: linear-gradient(135deg, #fff0f5 0%, #eaf4ff 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 20px;
+            color: #333;
+        }
+        .app { width: 100%; max-width: 480px; }
+        .header { text-align: center; margin-bottom: 16px; }
+        .header h1 { font-size: 24px; color: #d6336c; }
+        .subtitle { margin-top: 6px; font-size: 13px; color: #777; line-height: 1.5; }
+
+        .categories {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+        .chip {
+            border: 2px solid #ffd0e0;
+            background: #fff;
+            color: #555;
+            padding: 8px 14px;
+            border-radius: 999px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .chip:hover { border-color: #f783ac; }
+        .chip.selected { background: #f783ac; border-color: #f783ac; color: #fff; font-weight: 600; }
+
+        .card {
+            background: #fff;
+            border-radius: 20px;
+            padding: 28px 24px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            text-align: center;
+        }
+        .counter { font-size: 13px; color: #aaa; margin-bottom: 16px; }
+
+        .jp {
+            font-size: 34px;
+            font-weight: 700;
+            color: #222;
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+        .reading {
+            font-size: 19px;
+            color: #d6336c;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .romaji { font-size: 14px; color: #999; margin-bottom: 16px; }
+        .ko {
+            font-size: 18px;
+            color: #444;
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 22px;
+        }
+
+        .btn-row { display: flex; gap: 10px; margin-bottom: 12px; }
+        .action-btn {
+            flex: 1;
+            border: none;
+            padding: 16px;
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.1s, background 0.15s;
+        }
+        .action-btn:active { transform: scale(0.97); }
+        .listen-btn { background: #4dabf7; color: #fff; }
+        .listen-btn:hover { background: #339af0; }
+        .slow-btn { background: #e7f5ff; color: #1c7ed6; }
+        .slow-btn:hover { background: #d0ebff; }
+        .speak-btn { background: #f783ac; color: #fff; }
+        .speak-btn:hover { background: #f06595; }
+        .speak-btn.listening { background: #fa5252; animation: pulse 1s infinite; }
+        @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.6;} }
+
+        .feedback {
+            min-height: 24px;
+            font-size: 15px;
+            font-weight: 600;
+            margin: 8px 0 4px;
+        }
+        .feedback.ok { color: #2b8a3e; }
+        .feedback.no { color: #e8590c; }
+        .feedback.info { color: #868e96; font-weight: 500; }
+
+        .nav-row { display: flex; gap: 10px; margin-top: 16px; }
+        .nav-btn {
+            flex: 1;
+            border: 2px solid #ddd;
+            background: #fff;
+            color: #555;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 15px;
+            cursor: pointer;
+        }
+        .nav-btn:hover { border-color: #f783ac; }
+        .nav-btn:disabled { opacity: 0.4; cursor: default; }
+
+        .tip {
+            margin-top: 16px;
+            font-size: 12px;
+            color: #aaa;
+            text-align: center;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <header class="header">
+            <h1>🗣️ 일본어 회화 첫걸음</h1>
+            <p class="subtitle">읽기/쓰기는 몰라도 OK!<br/>🔊 듣고 → 한글 발음 보고 → 🎤 따라 말해보세요</p>
+        </header>
+
+        <div class="categories" id="categories"></div>
+
+        <section class="card">
+            <div class="counter" id="counter">1 / 5</div>
+            <div class="jp" id="jp">こんにちは</div>
+            <div class="reading" id="reading">콘니치와</div>
+            <div class="romaji" id="romaji">konnichiwa</div>
+            <div class="ko" id="ko">안녕하세요 (낮 인사)</div>
+
+            <div class="btn-row">
+                <button class="action-btn listen-btn" id="listenBtn">🔊 듣기</button>
+                <button class="action-btn slow-btn" id="slowBtn">🐢 천천히</button>
+            </div>
+            <button class="action-btn speak-btn" id="speakBtn" style="width:100%;">🎤 따라 말하기</button>
+
+            <div class="feedback info" id="feedback">버튼을 눌러 시작해요!</div>
+
+            <div class="nav-row">
+                <button class="nav-btn" id="prevBtn">⬅️ 이전</button>
+                <button class="nav-btn" id="nextBtn">다음 ➡️</button>
+            </div>
+        </section>
+
+        <p class="tip">
+            💡 소리가 안 나오면 휴대폰/PC 음량을 확인하세요.<br/>
+            🎤 말하기는 크롬(Chrome) 브라우저에서 가장 잘 돼요.
+        </p>
+    </div>
+
+    <script>
+        // ===== 회화 데이터 =====
+        // jp: 일본어, reading: 한글 발음, romaji: 로마자, ko: 한국어 뜻
+        const DATA = {
+            "인사": [
+                { jp: "おはよう ございます", reading: "오하요- 고자이마스", romaji: "ohayou gozaimasu", ko: "안녕하세요 (아침 인사)" },
+                { jp: "こんにちは", reading: "콘니치와", romaji: "konnichiwa", ko: "안녕하세요 (낮 인사)" },
+                { jp: "こんばんは", reading: "콤방와", romaji: "konbanwa", ko: "안녕하세요 (저녁 인사)" },
+                { jp: "ありがとう", reading: "아리가토-", romaji: "arigatou", ko: "고마워요" },
+                { jp: "すみません", reading: "스미마셍", romaji: "sumimasen", ko: "죄송합니다 / 저기요" },
+                { jp: "さようなら", reading: "사요-나라", romaji: "sayounara", ko: "안녕히 가세요" },
+                { jp: "また あした", reading: "마타 아시타", romaji: "mata ashita", ko: "내일 또 봐요" },
+            ],
+            "자기소개": [
+                { jp: "はじめまして", reading: "하지메마시테", romaji: "hajimemashite", ko: "처음 뵙겠습니다" },
+                { jp: "わたしは キム です", reading: "와타시와 키무 데스", romaji: "watashi wa kimu desu", ko: "저는 김 이에요" },
+                { jp: "かんこく から きました", reading: "캉코쿠 카라 키마시타", romaji: "kankoku kara kimashita", ko: "한국에서 왔어요" },
+                { jp: "よろしく おねがいします", reading: "요로시쿠 오네가이시마스", romaji: "yoroshiku onegaishimasu", ko: "잘 부탁드립니다" },
+                { jp: "にほんご は すこし わかります", reading: "니홍고와 스코시 와카리마스", romaji: "nihongo wa sukoshi wakarimasu", ko: "일본어 조금 알아요" },
+            ],
+            "식당": [
+                { jp: "メニュー を ください", reading: "메뉴- 오 쿠다사이", romaji: "menyuu o kudasai", ko: "메뉴 주세요" },
+                { jp: "これ を ください", reading: "코레 오 쿠다사이", romaji: "kore o kudasai", ko: "이거 주세요" },
+                { jp: "おいしい です", reading: "오이시이 데스", romaji: "oishii desu", ko: "맛있어요" },
+                { jp: "おみず ください", reading: "오미즈 쿠다사이", romaji: "omizu kudasai", ko: "물 주세요" },
+                { jp: "おかいけい おねがいします", reading: "오카이케- 오네가이시마스", romaji: "okaikei onegaishimasu", ko: "계산해 주세요" },
+                { jp: "ごちそうさま でした", reading: "고치소-사마 데시타", romaji: "gochisousama deshita", ko: "잘 먹었습니다" },
+            ],
+            "쇼핑": [
+                { jp: "いくら ですか", reading: "이쿠라 데스카", romaji: "ikura desu ka", ko: "얼마예요?" },
+                { jp: "これ は なん ですか", reading: "코레와 난 데스카", romaji: "kore wa nan desu ka", ko: "이건 뭐예요?" },
+                { jp: "みて も いい ですか", reading: "미테모 이이 데스카", romaji: "mite mo ii desu ka", ko: "봐도 될까요?" },
+                { jp: "これ に します", reading: "코레니 시마스", romaji: "kore ni shimasu", ko: "이걸로 할게요" },
+                { jp: "カード で おねがいします", reading: "카-도데 오네가이시마스", romaji: "kaado de onegaishimasu", ko: "카드로 부탁해요" },
+            ],
+            "길묻기/이동": [
+                { jp: "トイレ は どこ ですか", reading: "토이레와 도코 데스카", romaji: "toire wa doko desu ka", ko: "화장실은 어디예요?" },
+                { jp: "えき は どこ ですか", reading: "에키와 도코 데스카", romaji: "eki wa doko desu ka", ko: "역은 어디예요?" },
+                { jp: "ここ は どこ ですか", reading: "코코와 도코 데스카", romaji: "koko wa doko desu ka", ko: "여기는 어디예요?" },
+                { jp: "たすけて ください", reading: "타스케테 쿠다사이", romaji: "tasukete kudasai", ko: "도와주세요" },
+            ],
+            "대답/감정": [
+                { jp: "はい", reading: "하이", romaji: "hai", ko: "네" },
+                { jp: "いいえ", reading: "이이에", romaji: "iie", ko: "아니요" },
+                { jp: "だいじょうぶ です", reading: "다이죠-부 데스", romaji: "daijoubu desu", ko: "괜찮아요" },
+                { jp: "わかりました", reading: "와카리마시타", romaji: "wakarimashita", ko: "알겠어요" },
+                { jp: "わかりません", reading: "와카리마셍", romaji: "wakarimasen", ko: "모르겠어요" },
+                { jp: "もう いちど おねがいします", reading: "모- 이치도 오네가이시마스", romaji: "mou ichido onegaishimasu", ko: "한 번 더 말해주세요" },
+            ],
+        };
+
+        const categories = Object.keys(DATA);
+        let currentCat = categories[0];
+        let index = 0;
+
+        // ===== 카테고리 버튼 만들기 =====
+        const catBox = document.getElementById("categories");
+        categories.forEach((cat, i) => {
+            const btn = document.createElement("button");
+            btn.className = "chip" + (i === 0 ? " selected" : "");
+            btn.textContent = cat;
+            btn.addEventListener("click", () => {
+                document.querySelectorAll(".chip").forEach((c) => c.classList.remove("selected"));
+                btn.classList.add("selected");
+                currentCat = cat;
+                index = 0;
+                render();
+            });
+            catBox.appendChild(btn);
+        });
+
+        // ===== 화면 그리기 =====
+        function current() { return DATA[currentCat][index]; }
+
+        function render() {
+            const item = current();
+            const list = DATA[currentCat];
+            document.getElementById("counter").textContent = `${index + 1} / ${list.length}`;
+            document.getElementById("jp").textContent = item.jp;
+            document.getElementById("reading").textContent = item.reading;
+            document.getElementById("romaji").textContent = item.romaji;
+            document.getElementById("ko").textContent = item.ko;
+            document.getElementById("prevBtn").disabled = index === 0;
+            document.getElementById("nextBtn").disabled = index === list.length - 1;
+            setFeedback("🔊 듣기를 눌러 발음을 들어보세요!", "info");
+            // 카드 넘기면 자동으로 한 번 들려주기
+            speak(1);
+        }
+
+        function setFeedback(msg, type) {
+            const f = document.getElementById("feedback");
+            f.textContent = msg;
+            f.className = "feedback " + type;
+        }
+
+        // ===== 듣기 (TTS) =====
+        function speak(rate) {
+            if (!("speechSynthesis" in window)) {
+                setFeedback("이 브라우저는 소리 재생을 지원하지 않아요 😢", "no");
+                return;
+            }
+            window.speechSynthesis.cancel();
+            const u = new SpeechSynthesisUtterance(current().jp);
+            u.lang = "ja-JP";
+            u.rate = rate;
+            // 일본어 음성 우선 선택
+            const jaVoice = window.speechSynthesis.getVoices().find((v) => v.lang.startsWith("ja"));
+            if (jaVoice) u.voice = jaVoice;
+            window.speechSynthesis.speak(u);
+        }
+
+        document.getElementById("listenBtn").addEventListener("click", () => speak(1));
+        document.getElementById("slowBtn").addEventListener("click", () => speak(0.6));
+
+        // ===== 말하기 (음성 인식) =====
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const speakBtn = document.getElementById("speakBtn");
+
+        if (!SpeechRecognition) {
+            speakBtn.addEventListener("click", () =>
+                setFeedback("이 브라우저는 마이크 인식을 지원하지 않아요. 크롬을 써보세요 🙏", "no")
+            );
+        } else {
+            const recog = new SpeechRecognition();
+            recog.lang = "ja-JP";
+            recog.interimResults = false;
+            recog.maxAlternatives = 3;
+
+            speakBtn.addEventListener("click", () => {
+                setFeedback("🎤 듣고 있어요... 따라 말해보세요!", "info");
+                speakBtn.classList.add("listening");
+                try { recog.start(); } catch (e) {}
+            });
+
+            recog.onresult = (e) => {
+                const heard = [];
+                for (let i = 0; i < e.results[0].length; i++) {
+                    heard.push(e.results[0][i].transcript);
+                }
+                checkPronunciation(heard);
+            };
+            recog.onerror = () => {
+                speakBtn.classList.remove("listening");
+                setFeedback("잘 안 들렸어요. 다시 한 번 말해볼까요? 🎤", "no");
+            };
+            recog.onend = () => speakBtn.classList.remove("listening");
+        }
+
+        // 공백/기호 제거 후 비교
+        function normalize(s) { return (s || "").replace(/[\s、。!?！？]/g, ""); }
+
+        function checkPronunciation(heardList) {
+            const target = normalize(current().jp);
+            const matched = heardList.some((h) => {
+                const n = normalize(h);
+                return n === target || n.includes(target) || target.includes(n);
+            });
+            if (matched) {
+                setFeedback("👏 잘했어요! 발음이 정확해요!", "ok");
+            } else {
+                setFeedback(`들린 발음: "${heardList[0]}" — 다시 한 번 도전! 🎤`, "no");
+            }
+        }
+
+        // ===== 이동 =====
+        document.getElementById("prevBtn").addEventListener("click", () => {
+            if (index > 0) { index--; render(); }
+        });
+        document.getElementById("nextBtn").addEventListener("click", () => {
+            if (index < DATA[currentCat].length - 1) { index++; render(); }
+        });
+
+        // 음성 목록 로딩 후 첫 렌더
+        if ("speechSynthesis" in window) {
+            window.speechSynthesis.onvoiceschanged = () => {};
+        }
+        render();
+    </script>
+</body>
+</html>
